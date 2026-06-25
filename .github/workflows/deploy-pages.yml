@@ -29,6 +29,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - uses: actions/configure-pages@v5
       - run: npm run build:pwa
         env:
           VITE_BASE_PATH: /NOISE-FEED/
