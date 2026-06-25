@@ -1,0 +1,20 @@
+{
+  "name": "NOISE FEED",
+  "short_name": "NOISE FEED",
+  "description": "ZINEにソースを刻む。毎日、自分だけの紙面をめくる。",
+  "start_url": ".",
+  "scope": ".",
+  "id": ".",
+  "display": "standalone",
+  "background_color": "#ece5d8",
+  "theme_color": "#1a1715",
+  "lang": "ja",
+  "icons": [
+    {
+      "src": "assets/noise-feed-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

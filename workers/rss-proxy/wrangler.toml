@@ -1,0 +1,9 @@
+name = "noise-feed-rss-proxy"
+main = "src/index.ts"
+compatibility_date = "2025-01-01"
+
+[vars]
+ALLOWED_ORIGINS = "https://hib3.github.io"
+MAX_BYTES = "1048576"
+TIMEOUT_MS = "12000"
+MAX_REDIRECTS = "3"

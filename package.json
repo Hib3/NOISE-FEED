@@ -1,0 +1,16 @@
+{
+  "name": "noise-feed",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "apps/pwa",
+    "workers/rss-proxy"
+  ],
+  "scripts": {
+    "dev:pwa": "npm run dev --workspace apps/pwa",
+    "build:pwa": "npm run build --workspace apps/pwa",
+    "build:worker": "npm run typecheck --workspace workers/rss-proxy",
+    "build": "npm run build:pwa && npm run build:worker",
+    "deploy:worker": "npm run deploy --workspace workers/rss-proxy"
+  }
+}

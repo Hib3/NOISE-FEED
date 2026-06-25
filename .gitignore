@@ -1,0 +1,12 @@
+.env
+.env.*
+*.local
+node_modules
+dist
+*.tsbuildinfo
+noise-feed-worker-deploy.txt
+.wrangler
+.agents
+.codex
+.DS_Store
+Thumbs.db

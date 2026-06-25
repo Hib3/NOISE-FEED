@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="NOISE FEED">
+  <rect width="512" height="512" fill="#eee7dc"/>
+  <path d="M34 42h444v414H58L34 432z" fill="#fffaf0" stroke="#1a1715" stroke-width="18"/>
+  <path d="M79 103h354v38H79zM79 168h202v26H79zM79 214h354v18H79zM79 254h354v18H79zM79 294h260v18H79z" fill="#1a1715"/>
+  <path d="M318 162l98 17-20 114-98-17z" fill="#8c2f1f" stroke="#1a1715" stroke-width="10"/>
+  <text x="93" y="394" fill="#1a1715" font-family="monospace" font-size="72" font-weight="900">NF</text>
+</svg>
