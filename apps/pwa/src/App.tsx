@@ -288,6 +288,10 @@ export default function App() {
             <small>ZINEにソースを刻む。</small>
           </span>
         </button>
+        <div className="masthead-meta" aria-label="発行情報">
+          <span>ISSUE #{issueNumber()}</span>
+          <span>{shortDate(nowIso())}</span>
+        </div>
         <nav className="top-nav" aria-label="主要画面">
           <button className={view === "paper" ? "active" : ""} onClick={() => setView("paper")}>今日の紙面</button>
           <button className={view === "sources" ? "active" : ""} onClick={() => setView("sources")}>刻まれたソース</button>
@@ -299,6 +303,7 @@ export default function App() {
       {view === "paper" && (
         <section className={`paper-stage ${isAddOpen ? "torn-open" : ""}`}>
           <div className="under-layer" aria-hidden={!isAddOpen}>
+            <span className="tear-label">CARVE SOURCE</span>
             <h2>ZINEにソースを刻む</h2>
             <label>
               <span>RSS / Atom URLを入力</span>
@@ -323,7 +328,8 @@ export default function App() {
             <div className="issue-strip">
               <div>
                 <p>今日の紙面</p>
-                <h1>{shortDate(nowIso())} ISSUE #{issueNumber()}</h1>
+                <h1>DAILY PERSONAL ZINE</h1>
+                <span className="issue-number">{shortDate(nowIso())} / ISSUE #{issueNumber()}</span>
               </div>
               <button className="refresh-button" onClick={refreshPaper} disabled={isRefreshing}>
                 {isRefreshing ? "ソースを検版中" : "紙面を更新"}
@@ -334,8 +340,20 @@ export default function App() {
             <div className={`article-grid template-${pageTemplate(pages[currentPage], currentPage)}`}>
               {pages[currentPage].length === 0 ? (
                 <div className="empty-paper">
-                  <h2>まだ紙面は白紙です</h2>
-                  <p>右下の「＋ ソースを刻む」から、RSS / Atom URLを刻んでください。</p>
+                  <span className="empty-tape">ADD SOURCE</span>
+                  <span className="empty-stamp">未刻印</span>
+                  <h2>紙面、検版待ち</h2>
+                  <p>右下の「＋ ソースを刻む」からRSS / Atom URLを刻んでください。</p>
+                  <dl className="empty-memo">
+                    <div>
+                      <dt>STATUS</dt>
+                      <dd>NO FEED CARVED</dd>
+                    </div>
+                    <div>
+                      <dt>NEXT</dt>
+                      <dd>RSS / ATOM SOURCE</dd>
+                    </div>
+                  </dl>
                 </div>
               ) : (
                 pages[currentPage].map((article, index) => (

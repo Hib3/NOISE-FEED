@@ -6,6 +6,8 @@ import "./styles.css";
 const generatedAsset = (name: string) => `url("${import.meta.env.BASE_URL}assets/generated/${name}")`;
 document.documentElement.style.setProperty("--paper-noise-image", generatedAsset("paper-noise.png"));
 document.documentElement.style.setProperty("--copier-grain-image", generatedAsset("copier-grain.png"));
+document.documentElement.style.setProperty("--red-tape-image", generatedAsset("red-tape.png"));
+document.documentElement.style.setProperty("--stamp-approved-image", generatedAsset("stamp-approved.png"));
 
 createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
