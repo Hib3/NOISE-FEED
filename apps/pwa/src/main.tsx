@@ -5,7 +5,9 @@ import "./styles.css";
 
 const generatedAsset = (name: string) => `url("${import.meta.env.BASE_URL}assets/generated/${name}")`;
 document.documentElement.style.setProperty("--paper-noise-image", generatedAsset("paper-noise.png"));
+document.documentElement.style.setProperty("--crumpled-paper-image", generatedAsset("crumpled-paper.png"));
 document.documentElement.style.setProperty("--copier-grain-image", generatedAsset("copier-grain.png"));
+document.documentElement.style.setProperty("--torn-edge-image", generatedAsset("torn-edge.png"));
 document.documentElement.style.setProperty("--red-tape-image", generatedAsset("red-tape.png"));
 document.documentElement.style.setProperty("--stamp-approved-image", generatedAsset("stamp-approved.png"));
 

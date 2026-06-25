@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import type { RefObject } from "react";
 import {
   defaultSettings,
   getAll,
@@ -15,9 +16,11 @@ import { formatDate, hashText, issueNumber, localDateKey, nowIso, seededIndex, s
 
 type View = "paper" | "sources" | "scraps" | "settings";
 type FetchReport = { ok: number; failed: number; message: string };
+type TearState = "idle" | "tearing" | "open" | "closing";
 
 const PAGE_SIZE = 4;
 const TEMPLATES = ["front", "briefs", "scrap", "memo", "flyer"] as const;
+const TEAR_ANIMATION_MS = 520;
 
 function todayArticles(articles: Article[]): Article[] {
   const today = localDateKey();
@@ -70,6 +73,47 @@ function readFile(file: File): Promise<BackupData> {
   });
 }
 
+function ZineTextureLayer() {
+  return <div className="zine-texture-layer" aria-hidden="true" />;
+}
+
+function TornPaperFragment({ variant }: { variant: "main" | "lip" | "fibers" }) {
+  return <div className={`torn-fragment torn-fragment-${variant}`} aria-hidden="true" />;
+}
+
+function CarveSourceForm({
+  inputRef,
+  feedInput,
+  addStatus,
+  onFeedInput,
+  onSubmit
+}: {
+  inputRef: RefObject<HTMLInputElement | null>;
+  feedInput: string;
+  addStatus: string;
+  onFeedInput: (value: string) => void;
+  onSubmit: () => void;
+}) {
+  return (
+    <>
+      <span className="tear-label">CARVE SOURCE</span>
+      <h2>ZINEにソースを刻む</h2>
+      <label>
+        <span>RSS / Atom URLを入力</span>
+        <input
+          ref={inputRef}
+          value={feedInput}
+          onChange={(event) => onFeedInput(event.target.value)}
+          inputMode="url"
+          placeholder="https://example.com/feed.xml"
+        />
+      </label>
+      <button className="ink-button" onClick={onSubmit}>この紙面に刻む</button>
+      {addStatus && <p className={addStatus === "刻印済み" ? "stamp-message" : "status-line"}>{addStatus}</p>}
+    </>
+  );
+}
+
 export default function App() {
   const [view, setView] = useState<View>("paper");
   const [sources, setSources] = useState<FeedSource[]>([]);
@@ -78,7 +122,7 @@ export default function App() {
   const [notes, setNotes] = useState<Note[]>([]);
   const [settings, setSettings] = useState<AppSettings>(defaultSettings);
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
-  const [isAddOpen, setIsAddOpen] = useState(false);
+  const [tearState, setTearState] = useState<TearState>("idle");
   const [feedInput, setFeedInput] = useState("");
   const [addStatus, setAddStatus] = useState("");
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -86,6 +130,7 @@ export default function App() {
   const [page, setPage] = useState(0);
   const [turn, setTurn] = useState<"next" | "prev" | "idle">("idle");
   const swipeStart = useRef<number | null>(null);
+  const carveInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     Promise.all([
@@ -106,6 +151,12 @@ export default function App() {
   useEffect(() => {
     document.documentElement.dataset.reducedMotion = settings.reducedMotion ? "true" : "false";
   }, [settings.reducedMotion]);
+
+  useEffect(() => {
+    if (tearState === "open") {
+      window.setTimeout(() => carveInputRef.current?.focus(), settings.reducedMotion ? 0 : 80);
+    }
+  }, [settings.reducedMotion, tearState]);
 
   const paperArticles = useMemo(() => todayArticles(articles), [articles]);
   const pages = useMemo(() => chunk(paperArticles, PAGE_SIZE), [paperArticles]);
@@ -167,9 +218,29 @@ export default function App() {
       });
       setFeedInput("");
       setAddStatus("刻印済み");
-      window.setTimeout(() => setIsAddOpen(false), 900);
+      window.setTimeout(closeCarve, 900);
     } catch (error) {
       setAddStatus(`このソースは刻めませんでした: ${error instanceof Error ? error.message : "不明"}`);
+    }
+  }
+
+  function openCarve() {
+    if (tearState === "tearing" || tearState === "open") return;
+    setTearState("tearing");
+    window.setTimeout(() => setTearState("open"), settings.reducedMotion ? 0 : TEAR_ANIMATION_MS);
+  }
+
+  function closeCarve() {
+    if (tearState === "idle" || tearState === "closing") return;
+    setTearState("closing");
+    window.setTimeout(() => setTearState("idle"), settings.reducedMotion ? 0 : TEAR_ANIMATION_MS);
+  }
+
+  function toggleCarve() {
+    if (tearState === "idle" || tearState === "closing") {
+      openCarve();
+    } else {
+      closeCarve();
     }
   }
 
@@ -301,20 +372,19 @@ export default function App() {
       </header>
 
       {view === "paper" && (
-        <section className={`paper-stage ${isAddOpen ? "carving" : ""}`}>
-          <div className="under-carve-layer" aria-hidden={!isAddOpen}>
-            <span className="tear-label">CARVE SOURCE</span>
-            <h2>ZINEにソースを刻む</h2>
-            <label>
-              <span>RSS / Atom URLを入力</span>
-              <input value={feedInput} onChange={(event) => setFeedInput(event.target.value)} inputMode="url" placeholder="https://example.com/feed.xml" />
-            </label>
-            <button className="ink-button" onClick={handleAddSource}>この紙面に刻む</button>
-            {addStatus && <p className={addStatus === "刻印済み" ? "stamp-message" : "status-line"}>{addStatus}</p>}
+        <section className={`paper-stage tear-state-${tearState}`}>
+          <div className="carve-underlayer" aria-hidden={tearState === "idle" || tearState === "closing"}>
+            <CarveSourceForm
+              inputRef={carveInputRef}
+              feedInput={feedInput}
+              addStatus={addStatus}
+              onFeedInput={setFeedInput}
+              onSubmit={handleAddSource}
+            />
           </div>
 
           <div
-            className={`paper-sheet turn-${turn}`}
+            className={`paper-sheet paper-base turn-${turn}`}
             onPointerDown={(event) => {
               swipeStart.current = event.clientX;
             }}
@@ -340,12 +410,26 @@ export default function App() {
             <div className={`article-grid template-${pageTemplate(pages[currentPage], currentPage)}`}>
               {pages[currentPage].length === 0 ? (
                 <div className="empty-paper">
+                  <span className="empty-newsprint-title">NOISE MORNING EXTRA</span>
                   <span className="empty-tape">ADD SOURCE</span>
                   <span className="empty-stamp">NO SOURCE</span>
                   <span className="empty-code">NF-UNSTAMPED / PREPRESS</span>
                   <h2>未刻印</h2>
                   <h3>この紙面にはまだ情報源が刻まれていません</h3>
                   <p>右下の「＋ ソースを刻む」からRSS / Atom URLを刻んでください。</p>
+                  <div className="empty-columns" aria-hidden="true">
+                    <span />
+                    <span />
+                    <span />
+                  </div>
+                  <div className="empty-clipping empty-clipping-a" aria-hidden="true">
+                    <b>RSS</b>
+                    <i>ATOM</i>
+                  </div>
+                  <div className="empty-clipping empty-clipping-b" aria-hidden="true">
+                    <b>検版</b>
+                    <span>WAITING FOR SOURCE</span>
+                  </div>
                   <dl className="empty-memo">
                     <div>
                       <dt>STATUS</dt>
@@ -370,18 +454,20 @@ export default function App() {
                 ))
               )}
             </div>
-            <div className="tear-mask" aria-hidden="true" />
-            <div className="tear-flap tear-flap-left" aria-hidden="true" />
-            <div className="tear-flap tear-flap-right" aria-hidden="true" />
-            <div className="tear-shadow" aria-hidden="true" />
             <div className="page-controls">
               <button onClick={() => flip(-1)} disabled={currentPage === 0}>前の紙面</button>
               <span>{currentPage + 1} / {pages.length}</span>
               <button onClick={() => flip(1)} disabled={currentPage >= pages.length - 1}>次の紙面</button>
             </div>
+            <ZineTextureLayer />
           </div>
+          <TornPaperFragment variant="main" />
+          <TornPaperFragment variant="lip" />
+          <TornPaperFragment variant="fibers" />
+          <div className="tear-gash" aria-hidden="true" />
+          <div className="tear-shadow" aria-hidden="true" />
 
-          <button className="carve-button" onClick={() => setIsAddOpen((value) => !value)}>
+          <button className="carve-button" onClick={toggleCarve}>
             ＋ ソースを刻む
           </button>
         </section>
