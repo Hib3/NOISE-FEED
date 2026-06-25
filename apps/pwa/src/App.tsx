@@ -301,8 +301,8 @@ export default function App() {
       </header>
 
       {view === "paper" && (
-        <section className={`paper-stage ${isAddOpen ? "torn-open" : ""}`}>
-          <div className="under-layer" aria-hidden={!isAddOpen}>
+        <section className={`paper-stage ${isAddOpen ? "carving" : ""}`}>
+          <div className="under-carve-layer" aria-hidden={!isAddOpen}>
             <span className="tear-label">CARVE SOURCE</span>
             <h2>ZINEにソースを刻む</h2>
             <label>
@@ -341,8 +341,10 @@ export default function App() {
               {pages[currentPage].length === 0 ? (
                 <div className="empty-paper">
                   <span className="empty-tape">ADD SOURCE</span>
-                  <span className="empty-stamp">未刻印</span>
-                  <h2>紙面、検版待ち</h2>
+                  <span className="empty-stamp">NO SOURCE</span>
+                  <span className="empty-code">NF-UNSTAMPED / PREPRESS</span>
+                  <h2>未刻印</h2>
+                  <h3>この紙面にはまだ情報源が刻まれていません</h3>
                   <p>右下の「＋ ソースを刻む」からRSS / Atom URLを刻んでください。</p>
                   <dl className="empty-memo">
                     <div>
@@ -354,6 +356,8 @@ export default function App() {
                       <dd>RSS / ATOM SOURCE</dd>
                     </div>
                   </dl>
+                  <span className="empty-barcode" aria-hidden="true" />
+                  <span className="empty-rip-note" aria-hidden="true">tear here</span>
                 </div>
               ) : (
                 pages[currentPage].map((article, index) => (
@@ -366,6 +370,10 @@ export default function App() {
                 ))
               )}
             </div>
+            <div className="tear-mask" aria-hidden="true" />
+            <div className="tear-flap tear-flap-left" aria-hidden="true" />
+            <div className="tear-flap tear-flap-right" aria-hidden="true" />
+            <div className="tear-shadow" aria-hidden="true" />
             <div className="page-controls">
               <button onClick={() => flip(-1)} disabled={currentPage === 0}>前の紙面</button>
               <span>{currentPage + 1} / {pages.length}</span>
