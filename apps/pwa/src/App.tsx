@@ -172,9 +172,12 @@ function ArticleCut({
   return (
     <article className={`article-cut cut-${index} ${article.read ? "read" : ""}`} onClick={() => onSelect(article)}>
       <span className="article-photo-scrap" aria-hidden="true" />
+      <span className="article-tape" aria-hidden="true" />
+      <span className="article-index" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
       <p className="source-line">{article.sourceTitle} / {formatDate(article.publishedAt)}</p>
       <h2>{article.title}</h2>
       <p>{article.excerpt}</p>
+      <span className="article-rule" aria-hidden="true" />
       {!article.read && <span className="unread-stamp">未読</span>}
     </article>
   );
