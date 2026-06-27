@@ -131,6 +131,14 @@ function TextureLayer() {
 function EmptyEdition() {
   return (
     <section className="empty-classifieds">
+      <span className="image-shard image-shard-a" aria-hidden="true" />
+      <span className="image-shard image-shard-b" aria-hidden="true" />
+      <span className="image-shard image-shard-c" aria-hidden="true" />
+      <span className="ransom-strip ransom-strip-a" aria-hidden="true" />
+      <span className="ransom-strip ransom-strip-b" aria-hidden="true" />
+      <span className="tape-strip tape-strip-a" aria-hidden="true" />
+      <span className="tape-strip tape-strip-b" aria-hidden="true" />
+      <span className="tear-scar tear-scar-a" aria-hidden="true" />
       <div className="classified classified-lead">
         <b>NO<br />SOURCE<br />CARVED</b>
         <small>検版待ち / RSS ATOM</small>
