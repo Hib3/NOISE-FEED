@@ -134,6 +134,9 @@ function EmptyEdition() {
       <span className="image-shard image-shard-a" aria-hidden="true" />
       <span className="image-shard image-shard-b" aria-hidden="true" />
       <span className="image-shard image-shard-c" aria-hidden="true" />
+      <span className="collage-slab collage-slab-a" aria-hidden="true" />
+      <span className="collage-slab collage-slab-b" aria-hidden="true" />
+      <span className="collage-slab collage-slab-c" aria-hidden="true" />
       <span className="ransom-strip ransom-strip-a" aria-hidden="true" />
       <span className="ransom-strip ransom-strip-b" aria-hidden="true" />
       <span className="tape-strip tape-strip-a" aria-hidden="true" />
@@ -168,6 +171,7 @@ function ArticleCut({
 }) {
   return (
     <article className={`article-cut cut-${index} ${article.read ? "read" : ""}`} onClick={() => onSelect(article)}>
+      <span className="article-photo-scrap" aria-hidden="true" />
       <p className="source-line">{article.sourceTitle} / {formatDate(article.publishedAt)}</p>
       <h2>{article.title}</h2>
       <p>{article.excerpt}</p>

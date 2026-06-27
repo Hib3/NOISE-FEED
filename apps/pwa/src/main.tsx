@@ -12,6 +12,7 @@ document.documentElement.style.setProperty("--red-tape-image", generatedAsset("r
 document.documentElement.style.setProperty("--stamp-approved-image", generatedAsset("stamp-approved.png"));
 document.documentElement.style.setProperty("--xerox-collage-image", generatedAsset("xerox-collage.png"));
 document.documentElement.style.setProperty("--ransom-strips-image", generatedAsset("ransom-strips.png"));
+document.documentElement.style.setProperty("--punk-collage-image", generatedAsset("punk-collage.jpg"));
 
 createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
