@@ -10,6 +10,8 @@ document.documentElement.style.setProperty("--copier-grain-image", generatedAsse
 document.documentElement.style.setProperty("--torn-edge-image", generatedAsset("torn-edge.png"));
 document.documentElement.style.setProperty("--red-tape-image", generatedAsset("red-tape.png"));
 document.documentElement.style.setProperty("--stamp-approved-image", generatedAsset("stamp-approved.png"));
+document.documentElement.style.setProperty("--xerox-collage-image", generatedAsset("xerox-collage.png"));
+document.documentElement.style.setProperty("--ransom-strips-image", generatedAsset("ransom-strips.png"));
 
 createRoot(document.getElementById("root")!).render(
   <React.StrictMode>

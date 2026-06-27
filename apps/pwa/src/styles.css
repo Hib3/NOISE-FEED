@@ -161,6 +161,19 @@ textarea { resize: vertical; }
   content: "";
 }
 
+.press-rail::before {
+  position: absolute;
+  right: .65rem;
+  bottom: 1.42rem;
+  width: 9.5rem;
+  height: 2.4rem;
+  opacity: .78;
+  background: var(--ransom-strips-image, none) center / contain no-repeat;
+  filter: grayscale(1) contrast(1.25);
+  transform: rotate(2deg);
+  content: "";
+}
+
 .brand-ransom {
   display: grid;
   grid-template-columns: 2.1rem 1fr;
@@ -363,6 +376,35 @@ textarea { resize: vertical; }
   min-height: 28.4rem;
 }
 
+.empty-classifieds::before {
+  position: absolute;
+  z-index: 2;
+  right: .46rem;
+  top: 6.15rem;
+  width: 8.35rem;
+  height: 6.05rem;
+  background: var(--xerox-collage-image, none) center / cover no-repeat;
+  border: 2px solid var(--carbon);
+  box-shadow: 4px 5px 0 rgba(0,0,0,.55);
+  filter: grayscale(1) contrast(1.18);
+  transform: rotate(5deg);
+  mix-blend-mode: multiply;
+  content: "";
+}
+
+.empty-classifieds::after {
+  position: absolute;
+  z-index: 3;
+  left: .34rem;
+  top: 14rem;
+  width: 11.8rem;
+  height: 3.5rem;
+  background: var(--ransom-strips-image, none) center / cover no-repeat;
+  filter: grayscale(1) contrast(1.35);
+  transform: rotate(-4deg);
+  content: "";
+}
+
 .classified,
 .article-cut,
 .source-row,
@@ -437,8 +479,8 @@ textarea { resize: vertical; }
 
 .round-stamp {
   position: absolute;
-  right: .8rem;
-  bottom: 4.8rem;
+  right: .72rem;
+  bottom: 3.9rem;
   width: 5.3rem;
   height: 5.3rem;
   display: grid;
