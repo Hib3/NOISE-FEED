@@ -15,17 +15,17 @@ import type { AppSettings, Article, BackupData, FeedSource, Note, Scrap } from "
 import { formatDate, hashText, issueNumber, localDateKey, nowIso, seededIndex, shortDate } from "./utils";
 
 type View = "paper" | "sources" | "scraps" | "settings";
-type FetchReport = { ok: number; failed: number; message: string };
 type TearState = "idle" | "tearing" | "open" | "closing";
+type FetchReport = { ok: number; failed: number; message: string };
 
-const PAGE_SIZE = 4;
-const TEMPLATES = ["front", "briefs", "scrap", "memo", "flyer"] as const;
-const TEAR_ANIMATION_MS = 520;
+const PAGE_SIZE = 5;
+const TEAR_ANIMATION_MS = 620;
+const TEMPLATES = ["ads", "punk", "tear"] as const;
 
 function todayArticles(articles: Article[]): Article[] {
   const today = localDateKey();
   const fresh = articles.filter((article) => localDateKey(new Date(article.fetchedAt)) === today);
-  const base = fresh.length > 0 ? fresh : articles.slice(0, 24);
+  const base = fresh.length > 0 ? fresh : articles.slice(0, 30);
   return [...base].sort((a, b) => {
     const left = new Date(a.publishedAt ?? a.fetchedAt).getTime();
     const right = new Date(b.publishedAt ?? b.fetchedAt).getTime();
@@ -73,30 +73,30 @@ function readFile(file: File): Promise<BackupData> {
   });
 }
 
-function ZineTextureLayer() {
-  return <div className="zine-texture-layer" aria-hidden="true" />;
-}
-
-function TornPaperFragment({ variant }: { variant: "main" | "lip" | "fibers" }) {
-  return <div className={`torn-fragment torn-fragment-${variant}`} aria-hidden="true" />;
-}
-
-function CarveSourceForm({
+function CavityForm({
   inputRef,
   feedInput,
   addStatus,
   onFeedInput,
-  onSubmit
+  onSubmit,
+  onClose
 }: {
   inputRef: RefObject<HTMLInputElement | null>;
   feedInput: string;
   addStatus: string;
   onFeedInput: (value: string) => void;
   onSubmit: () => void;
+  onClose: () => void;
 }) {
   return (
-    <>
-      <span className="tear-label">CARVE SOURCE</span>
+    <form
+      className="cavity-form"
+      onSubmit={(event) => {
+        event.preventDefault();
+        onSubmit();
+      }}
+    >
+      <span className="cavity-kicker">SOURCE CUT / RSS ATOM XML</span>
       <h2>ZINEにソースを刻む</h2>
       <label>
         <span>RSS / Atom URLを入力</span>
@@ -108,9 +108,63 @@ function CarveSourceForm({
           placeholder="https://example.com/feed.xml"
         />
       </label>
-      <button className="ink-button" onClick={onSubmit}>この紙面に刻む</button>
-      {addStatus && <p className={addStatus === "刻印済み" ? "stamp-message" : "status-line"}>{addStatus}</p>}
-    </>
+      <div className="command-row">
+        <button className="black-command" type="submit">この紙面に刻む</button>
+        <button className="paper-command" type="button" onClick={onClose}>閉じる</button>
+      </div>
+      {addStatus && <p className={addStatus === "刻印済み" ? "stamp-result" : "status-slab"}>{addStatus}</p>}
+    </form>
+  );
+}
+
+function TextureLayer() {
+  return (
+    <div className="texture-layer" aria-hidden="true">
+      <span />
+      <span />
+      <span />
+      <span />
+    </div>
+  );
+}
+
+function EmptyEdition() {
+  return (
+    <section className="empty-classifieds">
+      <div className="classified classified-lead">
+        <b>NO<br />SOURCE<br />CARVED</b>
+        <small>検版待ち / RSS ATOM</small>
+      </div>
+      <div className="classified black">WRITE RIGHT NOW!</div>
+      <div className="classified">FREE FEED CATALOG</div>
+      <div className="classified">RSS / ATOM<br />URL ONLY</div>
+      <div className="classified red">CARVE HERE</div>
+      <div className="classified">NOISE<br />BULLETIN</div>
+      <div className="classified copy">
+        <h2>この紙面にはまだ情報源が刻まれていません</h2>
+        <p>中央の赤い裂け目を開き、下層の黒い刻印台にRSS / Atom URLを入力してください。</p>
+      </div>
+      <span className="round-stamp">NO SOURCE</span>
+    </section>
+  );
+}
+
+function ArticleCut({
+  article,
+  index,
+  onSelect
+}: {
+  article: Article;
+  index: number;
+  onSelect: (article: Article) => void;
+}) {
+  return (
+    <article className={`article-cut cut-${index} ${article.read ? "read" : ""}`} onClick={() => onSelect(article)}>
+      <p className="source-line">{article.sourceTitle} / {formatDate(article.publishedAt)}</p>
+      <h2>{article.title}</h2>
+      <p>{article.excerpt}</p>
+      {!article.read && <span className="unread-stamp">未読</span>}
+    </article>
   );
 }
 
@@ -154,13 +208,14 @@ export default function App() {
 
   useEffect(() => {
     if (tearState === "open") {
-      window.setTimeout(() => carveInputRef.current?.focus(), settings.reducedMotion ? 0 : 80);
+      window.setTimeout(() => carveInputRef.current?.focus(), settings.reducedMotion ? 0 : 90);
     }
   }, [settings.reducedMotion, tearState]);
 
   const paperArticles = useMemo(() => todayArticles(articles), [articles]);
   const pages = useMemo(() => chunk(paperArticles, PAGE_SIZE), [paperArticles]);
   const currentPage = Math.min(page, pages.length - 1);
+  const currentArticles = pages[currentPage];
   const selectedNote = selectedArticle ? notes.find((note) => note.articleId === selectedArticle.id)?.text ?? "" : "";
   const selectedScrap = selectedArticle ? scraps.some((scrap) => scrap.articleId === selectedArticle.id) : false;
   const scrapArticles = scraps
@@ -181,6 +236,23 @@ export default function App() {
     setScraps(nextScraps);
     setNotes(nextNotes);
     setSettings(nextSettings);
+  }
+
+  function openTear() {
+    if (tearState === "tearing" || tearState === "open") return;
+    setTearState("tearing");
+    window.setTimeout(() => setTearState("open"), settings.reducedMotion ? 0 : TEAR_ANIMATION_MS);
+  }
+
+  function closeTear() {
+    if (tearState === "idle" || tearState === "closing") return;
+    setTearState("closing");
+    window.setTimeout(() => setTearState("idle"), settings.reducedMotion ? 0 : TEAR_ANIMATION_MS);
+  }
+
+  function toggleTear() {
+    if (tearState === "idle" || tearState === "closing") openTear();
+    else closeTear();
   }
 
   async function handleAddSource() {
@@ -218,29 +290,9 @@ export default function App() {
       });
       setFeedInput("");
       setAddStatus("刻印済み");
-      window.setTimeout(closeCarve, 900);
+      window.setTimeout(closeTear, 950);
     } catch (error) {
       setAddStatus(`このソースは刻めませんでした: ${error instanceof Error ? error.message : "不明"}`);
-    }
-  }
-
-  function openCarve() {
-    if (tearState === "tearing" || tearState === "open") return;
-    setTearState("tearing");
-    window.setTimeout(() => setTearState("open"), settings.reducedMotion ? 0 : TEAR_ANIMATION_MS);
-  }
-
-  function closeCarve() {
-    if (tearState === "idle" || tearState === "closing") return;
-    setTearState("closing");
-    window.setTimeout(() => setTearState("idle"), settings.reducedMotion ? 0 : TEAR_ANIMATION_MS);
-  }
-
-  function toggleCarve() {
-    if (tearState === "idle" || tearState === "closing") {
-      openCarve();
-    } else {
-      closeCarve();
     }
   }
 
@@ -350,41 +402,37 @@ export default function App() {
   }
 
   return (
-    <main className="app-shell">
-      <header className="masthead">
-        <button className="brand" onClick={() => setView("paper")} aria-label="今日の紙面へ戻る">
-          <span className="brand-mark">NF</span>
-          <span>
-            <strong>NOISE FEED</strong>
-            <small>ZINEにソースを刻む。</small>
-          </span>
+    <main className="noise-workbench">
+      <header className="press-rail">
+        <button className="brand-ransom" onClick={() => setView("paper")} aria-label="今日の紙面へ戻る">
+          <span>NF</span>
+          <strong>
+            <i>NOISE</i>
+            <i>FEED</i>
+          </strong>
         </button>
-        <div className="masthead-meta" aria-label="発行情報">
+        <p>ZINEにソースを刻む。</p>
+        <div className="rail-meta">
           <span>ISSUE #{issueNumber()}</span>
           <span>{shortDate(nowIso())}</span>
         </div>
-        <nav className="top-nav" aria-label="主要画面">
-          <button className={view === "paper" ? "active" : ""} onClick={() => setView("paper")}>今日の紙面</button>
-          <button className={view === "sources" ? "active" : ""} onClick={() => setView("sources")}>刻まれたソース</button>
-          <button className={view === "scraps" ? "active" : ""} onClick={() => setView("scraps")}>スクラップ帳</button>
-          <button className={view === "settings" ? "active" : ""} onClick={() => setView("settings")}>設定</button>
-        </nav>
       </header>
 
       {view === "paper" && (
-        <section className={`paper-stage tear-state-${tearState}`}>
-          <div className="carve-underlayer" aria-hidden={tearState === "idle" || tearState === "closing"}>
-            <CarveSourceForm
+        <section className={`tear-rig tear-${tearState}`}>
+          <div className="source-cavity">
+            <CavityForm
               inputRef={carveInputRef}
               feedInput={feedInput}
               addStatus={addStatus}
               onFeedInput={setFeedInput}
               onSubmit={handleAddSource}
+              onClose={closeTear}
             />
           </div>
 
-          <div
-            className={`paper-sheet paper-base turn-${turn}`}
+          <section
+            className={`edition-stack turn-${turn}`}
             onPointerDown={(event) => {
               swipeStart.current = event.clientX;
             }}
@@ -395,122 +443,82 @@ export default function App() {
               if (Math.abs(diff) > 52) flip(diff < 0 ? 1 : -1);
             }}
           >
-            <div className="issue-strip">
-              <div>
-                <p>今日の紙面</p>
-                <h1>DAILY PERSONAL ZINE</h1>
-                <span className="issue-number">{shortDate(nowIso())} / ISSUE #{issueNumber()}</span>
+            <div className="edition-sheet">
+              <div className="edition-topline">
+                <span>今日の紙面</span>
+                <span>{shortDate(nowIso())} / ISSUE #{issueNumber()}</span>
               </div>
-              <button className="refresh-button" onClick={refreshPaper} disabled={isRefreshing}>
-                {isRefreshing ? "ソースを検版中" : "紙面を更新"}
-              </button>
+              <div className="edition-title">
+                <h1>SOURCE<br />CUT-UP<br />PRESS</h1>
+                <button onClick={refreshPaper} disabled={isRefreshing}>{isRefreshing ? "ソースを検版中" : "紙面を更新"}</button>
+              </div>
+              {fetchReport && <p className="status-slab">{fetchReport.message}</p>}
+              <div className={`edition-grid layout-${pageTemplate(currentArticles, currentPage)}`}>
+                {currentArticles.length === 0 ? (
+                  <EmptyEdition />
+                ) : (
+                  currentArticles.map((article, index) => (
+                    <ArticleCut key={article.id} article={article} index={index} onSelect={setSelectedArticle} />
+                  ))
+                )}
+              </div>
+              <div className="page-turners">
+                <button onClick={() => flip(-1)} disabled={currentPage === 0}>前の紙面</button>
+                <span>{currentPage + 1} / {pages.length}</span>
+                <button onClick={() => flip(1)} disabled={currentPage >= pages.length - 1}>次の紙面</button>
+              </div>
+              <TextureLayer />
             </div>
-            {fetchReport && <p className="status-line">{fetchReport.message}</p>}
+          </section>
 
-            <div className={`article-grid template-${pageTemplate(pages[currentPage], currentPage)}`}>
-              {pages[currentPage].length === 0 ? (
-                <div className="empty-paper">
-                  <span className="empty-newsprint-title">NOISE MORNING EXTRA</span>
-                  <span className="empty-tape">ADD SOURCE</span>
-                  <span className="empty-stamp">NO SOURCE</span>
-                  <span className="empty-code">NF-UNSTAMPED / PREPRESS</span>
-                  <h2>未刻印</h2>
-                  <h3>この紙面にはまだ情報源が刻まれていません</h3>
-                  <p>右下の「＋ ソースを刻む」からRSS / Atom URLを刻んでください。</p>
-                  <div className="empty-columns" aria-hidden="true">
-                    <span />
-                    <span />
-                    <span />
-                  </div>
-                  <div className="empty-clipping empty-clipping-a" aria-hidden="true">
-                    <b>RSS</b>
-                    <i>ATOM</i>
-                  </div>
-                  <div className="empty-clipping empty-clipping-b" aria-hidden="true">
-                    <b>検版</b>
-                    <span>WAITING FOR SOURCE</span>
-                  </div>
-                  <dl className="empty-memo">
-                    <div>
-                      <dt>STATUS</dt>
-                      <dd>NO FEED CARVED</dd>
-                    </div>
-                    <div>
-                      <dt>NEXT</dt>
-                      <dd>RSS / ATOM SOURCE</dd>
-                    </div>
-                  </dl>
-                  <span className="empty-barcode" aria-hidden="true" />
-                  <span className="empty-rip-note" aria-hidden="true">tear here</span>
-                </div>
-              ) : (
-                pages[currentPage].map((article, index) => (
-                  <article key={article.id} className={`paper-article slot-${index} ${article.read ? "read" : ""}`} onClick={() => setSelectedArticle(article)}>
-                    <p className="source-line">{article.sourceTitle} / {formatDate(article.publishedAt)}</p>
-                    <h2>{article.title}</h2>
-                    <p>{article.excerpt}</p>
-                    {!article.read && <span className="unread-stamp">未読</span>}
-                  </article>
-                ))
-              )}
-            </div>
-            <div className="page-controls">
-              <button onClick={() => flip(-1)} disabled={currentPage === 0}>前の紙面</button>
-              <span>{currentPage + 1} / {pages.length}</span>
-              <button onClick={() => flip(1)} disabled={currentPage >= pages.length - 1}>次の紙面</button>
-            </div>
-            <ZineTextureLayer />
-          </div>
-          <TornPaperFragment variant="main" />
-          <TornPaperFragment variant="lip" />
-          <TornPaperFragment variant="fibers" />
-          <div className="tear-gash" aria-hidden="true" />
-          <div className="tear-shadow" aria-hidden="true" />
-
-          <button className="carve-button" onClick={toggleCarve}>
-            ＋ ソースを刻む
+          <div className="page-fragment page-fragment-pull" aria-hidden="true" />
+          <div className="page-fragment page-fragment-lip" aria-hidden="true" />
+          <div className="page-fragment page-fragment-fibers" aria-hidden="true" />
+          <div className="ragged-mouth" aria-hidden="true" />
+          <div className="cavity-shadow" aria-hidden="true" />
+          <button className="tear-trigger" onClick={toggleTear}>
+            <span>＋ ソースを刻む</span>
+            <small>紙面を裂く</small>
           </button>
         </section>
       )}
 
       {view === "sources" && (
-        <section className="panel-page">
+        <section className="utility-sheet">
           <h1>刻まれたソース</h1>
-          <div className="source-list">
-            {sources.map((source) => (
-              <article className="source-row" key={source.id}>
-                <h2>{source.title}</h2>
-                <p className="url-text">{source.feedUrl}</p>
-                <p className="url-text">{source.siteUrl}</p>
-                <p>最終取得日時: {formatDate(source.lastFetchedAt)}</p>
-                <p>取得状態: {source.status === "ok" ? "刻印済み" : source.statusMessage ?? "不明"}</p>
-                <button className="danger-button" onClick={() => deleteSource(source)}>ソースを削る</button>
-              </article>
-            ))}
-            {sources.length === 0 && <p className="status-line">刻まれたソースはまだありません。</p>}
-          </div>
+          {sources.length === 0 && <p className="status-slab">刻まれたソースはまだありません。</p>}
+          {sources.map((source) => (
+            <article className="source-row" key={source.id}>
+              <h2>{source.title}</h2>
+              <p className="url-text">{source.feedUrl}</p>
+              <p className="url-text">{source.siteUrl}</p>
+              <p>最終取得日時: {formatDate(source.lastFetchedAt)}</p>
+              <p>取得状態: {source.status === "ok" ? "刻印済み" : source.statusMessage ?? "不明"}</p>
+              <button className="danger-command" onClick={() => deleteSource(source)}>ソースを削る</button>
+            </article>
+          ))}
         </section>
       )}
 
       {view === "scraps" && (
-        <section className="panel-page">
+        <section className="utility-sheet">
           <h1>スクラップ帳</h1>
+          {scrapArticles.length === 0 && <p className="status-slab">スクラップはまだありません。</p>}
           <div className="scrap-wall">
-            {scrapArticles.map(({ article, scrap }) => (
-              <article className="scrap-piece" key={article.id} onClick={() => setSelectedArticle(article)}>
+            {scrapArticles.map(({ article, scrap }, index) => (
+              <article className={`scrap-piece scrap-${index % 3}`} key={article.id} onClick={() => setSelectedArticle(article)}>
                 <p className="source-line">{article.sourceTitle} / 保存日 {formatDate(scrap.savedAt)}</p>
                 <h2>{article.title}</h2>
                 <p>{article.excerpt}</p>
                 <p className="margin-note">{notes.find((note) => note.articleId === article.id)?.text || "余白メモなし"}</p>
               </article>
             ))}
-            {scrapArticles.length === 0 && <p className="status-line">スクラップはまだありません。</p>}
           </div>
         </section>
       )}
 
       {view === "settings" && (
-        <section className="panel-page settings-page">
+        <section className="utility-sheet settings-page">
           <h1>設定</h1>
           <label>
             <span>RSSプロキシURL</span>
@@ -528,9 +536,9 @@ export default function App() {
             <input type="checkbox" checked={settings.reducedMotion} onChange={(event) => updateSettings({ ...settings, reducedMotion: event.target.checked })} />
             <span>reduced motion設定</span>
           </label>
-          <div className="button-line">
-            <button className="ink-button" onClick={() => loadBackup().then(downloadJson)}>JSONバックアップ</button>
-            <label className="file-button">
+          <div className="command-row">
+            <button className="black-command" onClick={() => loadBackup().then(downloadJson)}>JSONバックアップ</button>
+            <label className="file-command">
               JSON復元
               <input
                 type="file"
@@ -545,18 +553,25 @@ export default function App() {
               />
             </label>
           </div>
-          <p className="status-line">過去号とOPML import/exportを追加しやすいよう、記事・ソース・スクラップを分離して保存しています。</p>
+          <p className="status-slab">過去号とOPML import/exportを追加しやすいよう、記事・ソース・スクラップを分離して保存しています。</p>
         </section>
       )}
 
+      <nav className="scrap-nav" aria-label="主要画面">
+        <button className={view === "paper" ? "active" : ""} onClick={() => setView("paper")}>今日の紙面</button>
+        <button className={view === "sources" ? "active" : ""} onClick={() => setView("sources")}>刻まれたソース</button>
+        <button className={view === "scraps" ? "active" : ""} onClick={() => setView("scraps")}>スクラップ帳</button>
+        <button className={view === "settings" ? "active" : ""} onClick={() => setView("settings")}>設定</button>
+      </nav>
+
       {selectedArticle && (
-        <aside className="detail-drawer" role="dialog" aria-modal="true" aria-label="記事詳細">
-          <button className="close-button" onClick={() => setSelectedArticle(null)}>閉じる</button>
+        <aside className="article-drawer" role="dialog" aria-modal="true" aria-label="記事詳細">
+          <button className="close-command" onClick={() => setSelectedArticle(null)}>閉じる</button>
           <p className="source-line">購読元: {selectedArticle.sourceTitle}</p>
           <p className="source-line">公開日: {formatDate(selectedArticle.publishedAt)}</p>
           <h1>{selectedArticle.title}</h1>
           <div className="article-body" dangerouslySetInnerHTML={{ __html: selectedArticle.contentHtml || selectedArticle.excerpt }} />
-          <div className="detail-actions">
+          <div className="command-row">
             <a href={selectedArticle.url} target="_blank" rel="noreferrer">元記事を開く</a>
             <button onClick={() => markRead(selectedArticle, !selectedArticle.read)}>
               {selectedArticle.read ? "未読に戻す" : "既読にする"}
